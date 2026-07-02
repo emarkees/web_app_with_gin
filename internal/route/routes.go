@@ -6,9 +6,11 @@ import (
 )
 
 func SetRoute(ctrlx *controller.Container) *chi.Mux {
-	r := chi.NewMux()
+	r := chi.NewRouter()
 
 	r.Get("/", ctrlx.Home)
+	r.Post("/create", ctrlx.Store)
+	r.Get("/snippet/{id}", ctrlx.Show)
 
 	return r
 }
