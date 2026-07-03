@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/emarkees/internal/controller"
+	"github.com/emarkees/config"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -21,16 +21,15 @@ func (nfs neuteredFileSystem) Open(path string) (http.File, error) {
 
 	s, err := f.Stat()
 	if err != nil {
-    f.Close()
+		f.Close()
 		return nil, err
 	}
 
 	if s.IsDir() {
 		index := filepath.Join(path, "index.html")
 		if _, err := nfs.fs.Open(index); err != nil {
-			
-      f.Close()
 
+			f.Close()
 
 			return nil, os.ErrPermission
 		}
@@ -39,8 +38,11 @@ func (nfs neuteredFileSystem) Open(path string) (http.File, error) {
 	return f, nil
 }
 
-func SetRoute(ctrlx *controller.Container) *chi.Mux {
+func SetRoute(cfg *config.Container) *chi.Mux {
 	r := chi.NewRouter()
+
+	// Initialize the shared context for all your handlers
+	ctx := &handler.RouterContext{App: cfg}
 
 	r.Get("/", ctrlx.Home)
 	r.Post("/create", ctrlx.Store)
