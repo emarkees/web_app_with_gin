@@ -2,6 +2,7 @@ package route
 
 import (
 	"net/http"
+	"os"
 	"path/filepath"
 
 	"github.com/emarkees/internal/controller"
@@ -20,18 +21,18 @@ func (nfs neuteredFileSystem) Open(path string) (http.File, error) {
 
 	s, err := f.Stat()
 	if err != nil {
+    f.Close()
 		return nil, err
 	}
 
 	if s.IsDir() {
 		index := filepath.Join(path, "index.html")
 		if _, err := nfs.fs.Open(index); err != nil {
-			closeErr := f.Close()
-			if closeErr != nil {
-				return nil, err
-			}
+			
+      f.Close()
 
-			return nil, err
+
+			return nil, os.ErrPermission
 		}
 	}
 
