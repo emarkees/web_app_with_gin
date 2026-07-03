@@ -19,14 +19,21 @@ func NewContainer() *Container {
 
 func (c *Container) Home(w http.ResponseWriter, r *http.Request) {
 
-	tsx, err := template.ParseFiles("./ui/html/pages/home.tmpl.html")
+
+	files := []string {
+		"./ui/html/base.tmpl.html",
+		"./ui/html/partials/nav.tmpl.html",
+		"./ui/html/pages/home.tmpl.html",
+	}
+
+	tsx, err := template.ParseFiles(files...)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
 
-	err = tsx.Execute(w, nil)
+	err = tsx.ExecuteTemplate(w, "base", nil)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, "Internal Server Error", 500)
