@@ -5,7 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/emarkees/config"
+	"github.com/emarkees/internal/config"
+	handler "github.com/emarkees/internal/handler/http"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -44,9 +45,9 @@ func SetRoute(cfg *config.Container) *chi.Mux {
 	// Initialize the shared context for all your handlers
 	ctx := &handler.RouterContext{App: cfg}
 
-	r.Get("/", ctrlx.Home)
-	r.Post("/create", ctrlx.Store)
-	r.Get("/snippet/{id}", ctrlx.Show)
+	r.Get("/", ctx.Home)
+	r.Post("/create", ctx.Store)
+	r.Get("/snippet/{id}", ctx.Show)
 
 	fs := http.FileServer(neuteredFileSystem{http.Dir("./ui/static/")})
 	r.Handle("/static", http.NotFoundHandler())

@@ -1,4 +1,4 @@
-package controller
+package handler
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"text/template"
 
-	"github.com/emarkees/config"
+	"github.com/emarkees/internal/config"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -24,14 +24,14 @@ func (c *RouterContext) Home(w http.ResponseWriter, r *http.Request) {
 
 	tsx, err := template.ParseFiles(files...)
 	if err != nil {
-		c.ctx.ErrorLog.Println(err.Error())
+		c.App.ErrorLog.Println(err.Error())
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
 
 	err = tsx.ExecuteTemplate(w, "base", nil)
 	if err != nil {
-		c.ctx.ErrorLog.Println(err.Error())
+		c.App.ErrorLog.Println(err.Error())
 		http.Error(w, "Internal Server Error", 500)
 		return
 	}
