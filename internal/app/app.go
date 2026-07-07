@@ -23,3 +23,4 @@ func ConnectDB(dsn string) (*pgxpool.Pool, error) {
 
 	return pool, nil
 }
+

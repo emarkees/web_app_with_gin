@@ -39,7 +39,20 @@ func (c *RouterContext) Home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *RouterContext) Store(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Welcome to my create page!\n"))
+	// Create some variables holding dummy data. We'll remove these later on
+	// during the build.
+	title := "O snail"
+	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n– Kobayashi Issa"
+	expires := 7
+	// Pass the data to the SnippetModel.Insert() method, receiving the
+	// ID of the new record back.
+	id, err := c.App.snippets.Insert(title, content, expires)
+	if err != nil {
+		c.App.serverError(w, err)
+		return
+	}
+	// Redirect the user to the relevant page for the snippet.
+	http.Redirect(w, r, fmt.Sprintf("/snippet/view?id=%d", id), http.StatusSeeOther)
 
 }
 

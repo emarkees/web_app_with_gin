@@ -2,13 +2,16 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/emarkees/internal/app"
 	"github.com/emarkees/internal/config"
+	"github.com/emarkees/internal/models"
 	"github.com/emarkees/internal/route"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -21,10 +24,24 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
+	// Loading the .env files
+	if err := godotenv.Load(); err != nil {
+		errorLog.Printf("Warning: .env file not found, pulling from system enviroment variables: %v", err)
+	}
+
 	// 2. Connect to PostgreSQL
 	if *dsn == "" {
-		// Default DSN for local development — override with -dsn flag
-		defaultDSN := "postgres://postgres:password@localhost:5432/snippetbox?sslmode=disable"
+		dbUser := os.Getenv("DB_USER")
+		dbPass := os.Getenv("DB_PASSWORD")
+		dbHost := os.Getenv("DB_HOST")
+		dbPort := os.Getenv("DB_PORT")
+		dbName := os.Getenv("DB_NAME")
+		sslMode := os.Getenv("DB_SSLMODE")
+
+		defaultDSN := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+			dbUser, dbPass, dbHost, dbPort, dbName, sslMode,
+		)
+
 		dsn = &defaultDSN
 	}
 
@@ -35,8 +52,11 @@ func main() {
 	defer pool.Close()
 	infoLog.Println("Database connection pool established")
 
+	// Initialize a models.SnippetModel instance
+	snippetsModel := &models.SnippetModel{DB: pool}
+
 	// 3. Build the dependency container
-	ctrlx := config.NewContainer(infoLog, errorLog, pool)
+	ctrlx := config.NewContainer(infoLog, errorLog, pool, snippetsModel)
 	r := route.SetRoute(ctrlx)
 
 	srv := &http.Server{
