@@ -24,15 +24,13 @@ func (c *RouterContext) Home(w http.ResponseWriter, r *http.Request) {
 
 	tsx, err := template.ParseFiles(files...)
 	if err != nil {
-		c.App.ErrorLog.Println(err.Error())
-		http.Error(w, "Internal Server Error", 500)
+		c.ServerError(w, err)
 		return
 	}
 
 	err = tsx.ExecuteTemplate(w, "base", nil)
 	if err != nil {
-		c.App.ErrorLog.Println(err.Error())
-		http.Error(w, "Internal Server Error", 500)
+		c.ServerError(w, err)
 		return
 	}
 
@@ -44,15 +42,14 @@ func (c *RouterContext) Store(w http.ResponseWriter, r *http.Request) {
 	title := "O snail"
 	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n– Kobayashi Issa"
 	expires := 7
-	// Pass the data to the SnippetModel.Insert() method, receiving the
-	// ID of the new record back.
-	id, err := c.App.snippets.Insert(title, content, expires)
+
+	id, err := c.App.Snippets.Insert(r.Context(), title, content, expires)
 	if err != nil {
-		c.App.serverError(w, err)
+		c.ServerError(w, err)
 		return
 	}
 	// Redirect the user to the relevant page for the snippet.
-	http.Redirect(w, r, fmt.Sprintf("/snippet/view?id=%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/view?id=%d", id), http.StatusSeeOther)
 
 }
 

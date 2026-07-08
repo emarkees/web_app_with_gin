@@ -46,7 +46,7 @@ func main() {
 	
 	boilerplate := fmt.Sprintf(`-- +migrate Up
 CREATE TABLE IF NOT EXISTS %s (
-    id UUID PRIMARY KEY,
+    id INT PRIMARY KEY,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

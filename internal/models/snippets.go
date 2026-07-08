@@ -8,7 +8,7 @@ import (
 )
 
 type Snippet struct {
-	ID       int
+	ID        int
 	Title     string
 	Content   string
 	CreatedAt time.Time
@@ -37,12 +37,7 @@ func (m *SnippetModel) Insert(ctx context.Context, title string, content string,
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	err := m.DB.QueryRow(ctx, query,
-		title,
-		content,
-		expires,
-
-	).Scan(&id)
+	err := m.DB.QueryRow(ctx, query, title, content, expires).Scan(&id)
 	if err != nil {
 		return 0, err
 	}

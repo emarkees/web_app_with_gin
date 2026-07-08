@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime/debug"
 
 	"github.com/emarkees/internal/app"
 	"github.com/emarkees/internal/config"
@@ -38,6 +39,10 @@ func main() {
 		dbName := os.Getenv("DB_NAME")
 		sslMode := os.Getenv("DB_SSLMODE")
 
+		if err := app.EnsureDBExist(dbUser, dbPass, dbHost, dbPort, dbName, sslMode); err != nil {
+			errorLog.Fatal(err)
+		}
+
 		defaultDSN := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
 			dbUser, dbPass, dbHost, dbPort, dbName, sslMode,
 		)
@@ -51,6 +56,12 @@ func main() {
 	}
 	defer pool.Close()
 	infoLog.Println("Database connection pool established")
+
+	if err := app.RunMigrations(pool, "db/migrations"); err != nil {
+		trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
+		errorLog.Output(2, trace)
+		os.Exit(1)
+	}
 
 	// Initialize a models.SnippetModel instance
 	snippetsModel := &models.SnippetModel{DB: pool}
