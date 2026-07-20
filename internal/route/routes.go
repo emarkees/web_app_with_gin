@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/emarkees/internal/config"
-	handler "github.com/emarkees/internal/handler/http"
+	"github.com/emarkees/internal/handler/http"
 	"github.com/go-chi/chi/v5"
 )
 

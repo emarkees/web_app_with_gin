@@ -1,12 +1,15 @@
 package handler
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
-	"text/template"
+	// "text/template"
 
 	"github.com/emarkees/internal/config"
+	"github.com/emarkees/internal/models"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -16,23 +19,34 @@ type RouterContext struct {
 
 func (c *RouterContext) Home(w http.ResponseWriter, r *http.Request) {
 
-	files := []string{
-		"./ui/html/base.tmpl.html",
-		"./ui/html/partials/nav.tmpl.html",
-		"./ui/html/pages/home.tmpl.html",
-	}
-
-	tsx, err := template.ParseFiles(files...)
+	snippets, err := c.App.Snippets.Latest(context.Background())
 	if err != nil {
 		c.ServerError(w, err)
 		return
 	}
 
-	err = tsx.ExecuteTemplate(w, "base", nil)
-	if err != nil {
-		c.ServerError(w, err)
-		return
+	for _, snippet := range snippets {
+		fmt.Fprintf(w, "%+v", snippet)
 	}
+
+	// files := []string{
+	// 	"./ui/html/base.tmpl.html",
+	// 	"./ui/html/partials/nav.tmpl.html",
+	// 	"./ui/html/pages/home.tmpl.html",
+	// }
+
+	// // template.ParseFiles is used to 
+	// tsx, err := template.ParseFiles(files...)
+	// if err != nil {
+	// 	c.ServerError(w, err)
+	// 	return
+	// }
+
+	// err = tsx.ExecuteTemplate(w, "base", nil)
+	// if err != nil {
+	// 	c.ServerError(w, err)
+	// 	return
+	// }
 
 }
 
@@ -49,7 +63,7 @@ func (c *RouterContext) Store(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Redirect the user to the relevant page for the snippet.
-	http.Redirect(w, r, fmt.Sprintf("/view?id=%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/snippet/%d", id), http.StatusSeeOther)
 
 }
 
@@ -61,5 +75,14 @@ func (c *RouterContext) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "Displaying the snippet with id %d", id)
+	snippet, err := c.App.Snippets.Get(context.Background(), id)
+	if err != nil {
+		if errors.Is(err, models.ErrorRecord) {
+			c.NotFound(w)
+		} else {
+			c.ServerError(w, err)
+		}
+	}
+
+	fmt.Fprintf(w, "%+v", snippet)
 }
